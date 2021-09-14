@@ -1,6 +1,7 @@
-import { summary } from './functions/summary.js';
+import { summary } from './functions/summary.js'
+import Life from './life.js'
+import domtoimage from 'dom-to-image';
 import { getRate, getGrade } from './functions/addition.js';
-import Life from './life.js';
 
 class App{
     constructor(){
@@ -347,19 +348,20 @@ class App{
 
         // Trajectory
         const trajectoryPage = $(`
-        <div id="main">
-            <ul id="lifeProperty" class="lifeProperty"></ul>
-            <ul id="lifeTrajectory" class="lifeTrajectory"></ul>
-            <div class="btn-area">
-                <button id="auto" class="mainbtn">自动播放</button>
-                <button id="auto2x" class="mainbtn">自动播放2x</button>
-                <button id="summary" class="mainbtn">人生总结</button>
-                <button id="domToImage" class="mainbtn">人生回放</button>
+            <div id="main">
+                <ul id="lifeProperty" class="lifeProperty"></ul>
+                <ul id="lifeTrajectory" class="lifeTrajectory"></ul>
+                <div class="btn-area">
+                    <button id="auto" class="mainbtn">自动播放</button>
+                    <button id="auto2x" class="mainbtn">自动播放2x</button>
+                    <button id="summary" class="mainbtn">人生总结</button>
+                    <button id="domToImage" class="mainbtn">人生回放</button>
+                </div>
+                <div class="domToImage2wx">
+                    <img src="" id="successSaveImage" />
+                    <button id="hideDomToImageBtn" style="position: fixed; top:auto; bottom: 20px; left: 75%">隐藏截图</button>
+                </div>
             </div>
-            <div class="domToImage2wx">
-                <img src="" id="endImage" />
-            </div>
-        </div>
         `);
 
         trajectoryPage
@@ -388,7 +390,7 @@ class App{
                     trajectoryPage.find('#summary').show();
                     trajectoryPage.find('#auto').hide();
                     trajectoryPage.find('#auto2x').hide();
-                    // trajectoryPage.find('#domToImage').show();
+                    trajectoryPage.find('#domToImage').show();
                 }
                 const property = this.#life.getLastRecord();
                 $("#lifeProperty").html(`
@@ -399,7 +401,7 @@ class App{
                 <li><span>快乐</span><span>${property.SPR}</span></li>
                 `);
             });
-        // html2canvas
+        // domToImage
         trajectoryPage
             .find('#domToImage')
             .click(()=>{
@@ -414,10 +416,18 @@ class App{
                         $("#lifeTrajectory").removeClass("deleteFixed");
                         // 微信内置浏览器，显示图片，需要用户单独保存
                         if(ua.match(/MicroMessenger/i)=="micromessenger") {
-                            $('#endImage').attr('src', dataUrl);
+                            trajectoryPage.find('#hideDomToImageBtn').show();
+                            $('#successSaveImage').attr('src', dataUrl);
                         }
-
+                        
                     });
+            });
+        // 微信内置浏览器 隐藏截图
+        trajectoryPage
+            .find('#hideDomToImageBtn')
+            .click(()=>{
+                trajectoryPage.find('#successSaveImage').hide();
+                trajectoryPage.find('#hideDomToImageBtn').hide();
             })
             .hide();
 
@@ -477,7 +487,7 @@ class App{
             <button id="again" class="mainbtn"><span class="iconfont">&#xe6a7;</span>再次重开</button>
         </div>
         `);
-
+            
         summaryPage
             .find('#again')
             .click(()=>{
@@ -497,6 +507,7 @@ class App{
                     this.#currentPage = 'loading';
                 },
             },
+
             index: {
                 page: indexPage,
                 btnAchievement: indexPage.find('#achievement'),
@@ -642,6 +653,10 @@ class App{
                     this.#currentPage = 'trajectory';
                     trajectoryPage.find('#lifeTrajectory').empty();
                     trajectoryPage.find('#summary').hide();
+                    // fix 第二次进入时不显示人生回放功能
+                    trajectoryPage.find('#domToImage').hide();
+                    // 在微信内置浏览器中，显示的截图不能关闭，增加 隐藏截图 按钮，初始化隐藏
+                    trajectoryPage.find('#hideDomToImageBtn').hide();
                     trajectoryPage.find('#auto').show();
                     trajectoryPage.find('#auto2x').show();
                     this.#isEnd = false;
