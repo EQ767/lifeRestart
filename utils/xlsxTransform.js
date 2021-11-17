@@ -1,5 +1,5 @@
 import { readFile, writeFile, stat, readdir } from 'fs/promises';
-import * as XLSX from 'xlsx';
+import XLSX from 'xlsx';
 import { join, extname, dirname } from 'path';
 
 // const { readFile, writeFile, stat, readdir } = require('fs/promises');
@@ -182,10 +182,16 @@ async function main() {
     for(const p of xlsxs) {
         const data = await read(p);
         const d = dirname(p);
-        sheets[p] = {
-            dirname: d,
-            data
-        };
+        let fileName = p.split("\\")[1];
+        fileName = fileName.split(".")[0];
+        for(const sheetName in data) {
+            const savePath = join(d, `${fileName}.json`);
+            console.info(`[Transform] XLSX(${p}:${fileName}) -> JSON(${savePath})`);
+            await writeFile(
+                savePath,
+                JSON.stringify(data[sheetName], null, 4),
+            );
+        }
     }
     await write(
         transform(sheets)
